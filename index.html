@@ -45,7 +45,7 @@ select{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(
 <body>
 <aside class="left">
   <h1>STL Assembler</h1>
-  <div id="drop"><label class="btn">Chọn file STL<input id="file" type="file" accept=".stl" multiple hidden></label><p class="muted" style="margin:8px 0 0">hoặc kéo thả nhiều file vào đây</p></div>
+  <div id="drop"><label class="btn">Chọn file STL / 3MF<input id="file" type="file" accept=".stl,.3mf" multiple hidden></label><p class="muted" style="margin:8px 0 0">hoặc kéo thả nhiều file vào đây</p></div>
   <h2>Các phần</h2>
   <ul id="list"></ul>
   <p id="empty" class="muted">Chưa có phần nào.</p>
@@ -73,6 +73,8 @@ select{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(
     <button data-mode="scale">Co giãn (R)</button>
   </div>
   <label class="chk"><input id="snapGrid" type="checkbox"> Bám lưới (5 đơn vị, 15°)</label>
+  <label class="chk"><input id="stick" type="checkbox" checked> Dính mặt phẳng (đáy luôn chạm lưới)</label>
+  <div class="row"><button id="stickAll">Bật tất cả</button><button id="stickNone">Tắt tất cả</button></div>
   <h2>Ghép</h2>
   <div class="row"><button data-snap="point">Điểm</button><button data-snap="face">Mặt</button><button data-snap="edge">Cạnh</button></div>
   <label class="chk"><input id="alignFace" type="checkbox" checked> Ghép điểm: xoay hai mặt úp vào nhau</label>
@@ -98,6 +100,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import {STLLoader} from 'three/addons/loaders/STLLoader.js';
+import {ThreeMFLoader} from 'three/addons/loaders/3MFLoader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 THREE.Object3D.DEFAULT_UP.set(0,0,1); // STL/CAD dùng trục Z hướng lên
@@ -123,16 +126,55 @@ function resize(){const w=view.clientWidth,h=view.clientHeight;renderer.setSize(
 new ResizeObserver(resize).observe(view); resize();
 (function loop(){requestAnimationFrame(loop);orbit.update();if(exploded)tc.visible=false;renderer.render(scene,camera)})();
 
-function addSTL(name,buf){ if(exploded)setExplode(0);
-  let geo; try{geo=new STLLoader().parse(buf)}catch(e){alert('Không đọc được '+name);return}
-  geo.computeVertexNormals(); geo.center(); geo.computeBoundingBox();
-  const size=geo.boundingBox.getSize(new THREE.Vector3());
-  const mat=new THREE.MeshPhysicalMaterial({color:colors[n++%colors.length]});
-  const mesh=new THREE.Mesh(geo,mat);
-  mesh.position.set(nextX+size.x/2,0,size.z/2); nextX+=size.x+20;
-  mesh.userData.name=name.replace(/\.stl$/i,''); scene.add(mesh); setMat(mesh,'pla'); parts.push(mesh); select(mesh); frame(); push();
+function minZ(m){ // điểm thấp nhất thật sự của phần (tính trên từng đỉnh)
+  m.updateMatrixWorld(true); const e=m.matrixWorld.elements,p=m.geometry.attributes.position.array; let z=Infinity;
+  for(let i=0;i<p.length;i+=3){const v=e[2]*p[i]+e[6]*p[i+1]+e[10]*p[i+2]+e[14];if(v<z)z=v}
+  return z;
 }
-async function loadFiles(files){for(const f of files){if(/\.stl$/i.test(f.name))addSTL(f.name,await f.arrayBuffer())}}
+function dropToPlane(m){m.position.z-=minZ(m)}
+function makePart(name,geo,col){ // hình học về dạng không chỉ mục, đưa tâm về gốc; nhớ tâm cũ để giữ bố cục trong file
+  if(!geo.attributes.position||!geo.attributes.position.count)throw new Error('empty');
+  if(geo.index)geo=geo.toNonIndexed();
+  Object.keys(geo.attributes).forEach(k=>{if(k!=='position'&&k!=='normal')geo.deleteAttribute(k)});
+  geo.computeVertexNormals(); geo.computeBoundingBox();
+  const c=geo.boundingBox.getCenter(new THREE.Vector3()), size=geo.boundingBox.getSize(new THREE.Vector3());
+  geo.translate(-c.x,-c.y,-c.z);
+  const mesh=new THREE.Mesh(geo,new THREE.MeshPhysicalMaterial({color:col!==undefined?col:colors[n++%colors.length]}));
+  mesh.userData.name=name; mesh.userData.c=c; mesh.userData.size=size; return mesh;
+}
+function place(ms){ // xếp cả file cạnh các phần có sẵn, giữ nguyên vị trí tương đối giữa các phần trong cùng file
+  const U=new THREE.Box3(); ms.forEach(m=>{const h=m.userData.size.clone().multiplyScalar(.5);U.expandByPoint(m.userData.c.clone().sub(h));U.expandByPoint(m.userData.c.clone().add(h))});
+  const uc=U.getCenter(new THREE.Vector3()), us=U.getSize(new THREE.Vector3());
+  ms.forEach(m=>{m.position.set(nextX+us.x/2,0,us.z/2).add(m.userData.c).sub(uc);m.updateMatrixWorld(true)});
+  nextX+=us.x+20;
+  const zs=ms.map(minZ), g=Math.min(...zs), tol=Math.max(us.z*.01,1e-3);
+  ms.forEach((m,i)=>{m.position.z-=g; m.userData.stick=zs[i]-g<tol; scene.add(m);setMat(m,'pla');parts.push(m)}); // phần đang lơ lửng trong file thì không dính
+}
+function fromSTL(name,buf){return [makePart(name.replace(/\.stl$/i,''),new STLLoader().parse(buf))]}
+function from3MF(name,buf){
+  const g=new ThreeMFLoader().parse(buf); g.updateMatrixWorld(true);
+  const base=name.replace(/\.3mf$/i,''), ms=[];
+  g.traverse(o=>{if(o.isMesh){
+    const col=o.material&&o.material.color&&o.material.color.getHex()!==0xffffff?o.material.color.getHex():undefined;
+    ms.push(makePart(o.name?base+' – '+o.name:base+' '+(ms.length+1),o.geometry.clone().applyMatrix4(o.matrixWorld),col));
+  }});
+  if(ms.length===1)ms[0].userData.name=base;
+  return ms;
+}
+async function loadFiles(files){
+  if(exploded)setExplode(0);
+  let any=false;
+  for(const f of files){
+    let ms=[];
+    try{
+      if(/\.stl$/i.test(f.name))ms=fromSTL(f.name,await f.arrayBuffer());
+      else if(/\.3mf$/i.test(f.name))ms=from3MF(f.name,await f.arrayBuffer());
+      else continue;
+    }catch(e){alert('Không đọc được '+f.name);continue}
+    if(ms.length){place(ms);select(ms[0]);any=true}
+  }
+  if(any){frame();push()}
+}
 $('file').onchange=e=>{loadFiles(e.target.files);e.target.value=''};
 const drop=$('drop');
 ['dragover','dragenter'].forEach(t=>addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
@@ -158,8 +200,8 @@ function renderList(){
 }
 const F={px:['position','x'],py:['position','y'],pz:['position','z']};
 function fillFields(){
-  const d=!sel||exploded; ['px','py','pz','rx','ry','rz','sc'].forEach(i=>$(i).disabled=d); if(!sel)return;
-  markMat(); const r=v=>+v.toFixed(3), D=180/Math.PI;
+  const d=!sel||exploded; $('stick').disabled=d; ['px','py','pz','rx','ry','rz','sc'].forEach(i=>$(i).disabled=d); if(!sel)return;
+  markMat(); $('stick').checked=sel.userData.stick!==false; const r=v=>+v.toFixed(3), D=180/Math.PI;
   $('px').value=r(sel.position.x);$('py').value=r(sel.position.y);$('pz').value=r(sel.position.z);
   $('rx').value=r(sel.rotation.x*D);$('ry').value=r(sel.rotation.y*D);$('rz').value=r(sel.rotation.z*D);$('sc').value=r(sel.scale.x);
 }
@@ -200,6 +242,11 @@ for(const z of [1,-1])for(const y of [-1,1])for(const x of [1,-1]){
   const o=document.createElement('option'); o.value=[x,y,z]; o.textContent=(z>0?'Trên':'Dưới')+' – '+(y<0?'Trước':'Sau')+' – '+(x>0?'Phải':'Trái'); corner.append(o);
 }
 corner.onchange=()=>{if(corner.value){setView(new THREE.Vector3(...corner.value.split(',').map(Number)));corner.selectedIndex=0}};
+
+// ---- Dính mặt phẳng ----
+$('stick').onchange=e=>{if(!sel)return;sel.userData.stick=e.target.checked;if(e.target.checked){beginMove();propagate();fillFields()}push()};
+function setStickAll(v){if(exploded)return;parts.forEach(m=>{m.userData.stick=v;if(v)dropToPlane(m)});fillFields();push()}
+$('stickAll').onclick=()=>setStickAll(true); $('stickNone').onclick=()=>setStickAll(false);
 
 // ---- Exploded view: dịch chuyển hiển thị, vị trí ghép thật được giữ trong userData.base ----
 let exMode='radial';
@@ -261,11 +308,11 @@ Object.entries(MATS).forEach(([k,p])=>{const b=document.createElement('button');
 
 // ---- Hoàn tác / làm lại ----
 let hist=[], hi=-1;
-function snapshot(){return{parts:parts.map(m=>({m,p:(m.userData.base||m.position).clone(),q:m.quaternion.clone(),s:m.scale.clone(),c:m.material.color.getHex(),v:m.visible,k:m.userData.mat})),joints:joints.map(j=>({...j})),sel}}
+function snapshot(){return{parts:parts.map(m=>({m,p:(m.userData.base||m.position).clone(),q:m.quaternion.clone(),s:m.scale.clone(),c:m.material.color.getHex(),v:m.visible,k:m.userData.mat,st:m.userData.stick})),joints:joints.map(j=>({...j})),sel}}
 function push(){hist=hist.slice(0,hi+1);hist.push(snapshot());hi=hist.length-1;updUndo()}
 function restore(s){
   parts.forEach(m=>scene.remove(m)); parts.length=0;
-  s.parts.forEach(o=>{const m=o.m;m.position.copy(o.p);m.quaternion.copy(o.q);m.scale.copy(o.s);m.material.color.setHex(o.c);m.visible=o.v;setMat(m,o.k);scene.add(m);parts.push(m)});
+  s.parts.forEach(o=>{const m=o.m;m.position.copy(o.p);m.quaternion.copy(o.q);m.scale.copy(o.s);m.material.color.setHex(o.c);m.visible=o.v;setMat(m,o.k);m.userData.stick=o.st;scene.add(m);parts.push(m)});
   joints.forEach(j=>j.marker.removeFromParent()); joints=s.joints.map(j=>({...j})); joints.forEach(j=>j.a.add(j.marker));
   select(parts.includes(s.sel)?s.sel:parts[0]||null);
 }
@@ -278,6 +325,7 @@ $('undo').onclick=undo; $('redo').onclick=redo;
 function beginMove(){sel.updateMatrix();lastM=sel.matrix.clone()}
 function groupOf(m){const g=new Set([m]);let ch=true;while(ch){ch=false;joints.forEach(j=>{if(j.locked&&g.has(j.a)!==g.has(j.b)){g.add(j.a);g.add(j.b);ch=true}})}return g}
 function propagate(){
+  if(sel.userData.stick!==false)dropToPlane(sel);
   sel.updateMatrix(); const d=new THREE.Matrix4().multiplyMatrices(sel.matrix,lastM.clone().invert());
   groupOf(sel).forEach(o=>{if(o!==sel){o.updateMatrix();o.matrix.premultiply(d);o.matrix.decompose(o.position,o.quaternion,o.scale)}});
   lastM.copy(sel.matrix);
@@ -353,7 +401,7 @@ function applySnap(a,b){
   if(a.mode==='edge'){const da=a.e1.clone().sub(a.e0).normalize(),db=b.e1.clone().sub(b.e0).normalize();q=new THREE.Quaternion().setFromUnitVectors(da,da.dot(db)<0?db.negate():db)}
   if(q){o.quaternion.premultiply(q);a.p.sub(o.position).applyQuaternion(q).add(o.position)}
   let d=b.p.clone().sub(a.p); if(a.mode==='face')d=b.n.clone().multiplyScalar(d.dot(b.n)); // mặt: chỉ áp sát, không trượt ngang
-  o.position.add(d); propagate(); o.updateMatrixWorld(true);
+  o.position.add(d); o.userData.stick=false; propagate(); o.updateMatrixWorld(true);
   const w=a.p.clone().add(d), size=new THREE.Box3().setFromObject(o).getSize(new THREE.Vector3());
   const mk=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),jointMat); mk.renderOrder=9;
   mk.position.copy(o.worldToLocal(w)); mk.scale.setScalar(Math.max(size.x,size.y,size.z)/60/o.scale.x); o.add(mk);
