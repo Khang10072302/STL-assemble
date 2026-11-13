@@ -23,3 +23,9 @@ function units(){ // mỗi nhóm chọn đủ thành viên là một đơn vị,
   return us;
 }
 $('grp').onclick=groupSel; $('ungrp').onclick=ungroupSel;
+function groupTargets(g){return g.members.every(m=>selSet.has(m))&&selSet.size>g.members.length?[...selSet]:g.members}
+function toggleGroupLock(g){
+  const val=!g.locked, t=groupTargets(g); if(t===g.members){g.locked=val;return}
+  t.forEach(p=>{if(p.userData.group)p.userData.group.locked=val;else p.userData.locked=val});
+}
+function setGroupVisible(g,v){groupTargets(g).forEach(m=>m.visible=v)}

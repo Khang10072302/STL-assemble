@@ -1,6 +1,7 @@
 'use strict';
-// Chọn phần: chọn một, chọn thêm (Shift/Ctrl), chọn nhóm, đồng bộ gizmo
+// Chọn phần: chọn một, chọn thêm (Shift/Ctrl), chọn nhóm, đồng bộ gizmo, targets() cho thao tác hàng loạt
 // ---- Chọn phần / nhóm ----
+function targets(m){return selSet.has(m)&&selSet.size>1?[...selSet]:[m]} // phần được bấm nằm trong vùng chọn thì áp dụng cho cả vùng chọn
 function expand(m,single){return m.userData.group&&!single?m.userData.group.members:[m]}
 function finishSel(){
   parts.forEach(p=>p.material.emissive.set(selSet.has(p)?0x10304f:0));

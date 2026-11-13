@@ -15,7 +15,7 @@ function setMat(m,k){
   m.material.needsUpdate=true; m.userData.mat=k;
 }
 function markMat(){document.querySelectorAll('[data-mat]').forEach(b=>b.classList.toggle('on',!!sel&&sel.userData.mat===b.dataset.mat))}
-Object.entries(MATS).forEach(([k,p])=>{const b=document.createElement('button');b.textContent=p.n;b.dataset.mat=k;b.onclick=()=>{if(sel){setMat(sel,k);markMat();push()}};$('mats').append(b)});
+Object.entries(MATS).forEach(([k,p])=>{const b=document.createElement('button');b.textContent=p.n;b.dataset.mat=k;b.onclick=()=>{if(selSet.size){selSet.forEach(p=>setMat(p,k));markMat();push()}};$('mats').append(b)});
 ['#f5f5f5','#222222','#8a8f98','#d62828','#f77f00','#fcbf49','#2a9d4f','#2a6fdb','#7b4fd1','#f28ab2','#8b5a2b','#e8c9a0'].forEach(c=>{
   const b=document.createElement('button');b.className='sw';b.style.background=c;b.title=c;
-  b.onclick=()=>{if(sel){sel.material.color.set(c);renderList();push()}};$('swatches').append(b)});
+  b.onclick=()=>{if(selSet.size){selSet.forEach(p=>p.material.color.set(c));renderList();push()}};$('swatches').append(b)});

@@ -9,6 +9,7 @@ async function loadFiles(files){
       if(/\.stl$/i.test(f.name))ms=fromSTL(f.name,await f.arrayBuffer());
       else if(/\.3mf$/i.test(f.name))ms=from3MF(f.name,await f.arrayBuffer());
       else if(/\.(step|stp)$/i.test(f.name))ms=await fromSTEP(f.name,await f.arrayBuffer());
+      else if(/\.stlproj$/i.test(f.name)){await openProject(await f.arrayBuffer());continue}
       else continue;
     }catch(e){console.error(e);setHint();alert('Không đọc được '+f.name+': '+(e.message||e));continue}
     if(ms.length){place(ms);select(ms[0]);any=true}

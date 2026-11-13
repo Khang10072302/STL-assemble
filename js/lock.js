@@ -16,3 +16,4 @@ function lockBtn(getLocked,onToggle,disabled){
   b.title=disabled?'Nhóm đang khóa':getLocked()?'Đang khóa, bấm để mở':'Bấm để khóa'; b.setAttribute('aria-label',b.title);
   b.onclick=()=>{if(disabled)return;onToggle();syncGizmo();renderList();fillFields();refreshAlign();push()}; return b;
 }
+function toggleLockFor(m){const val=!isLocked(m);targets(m).forEach(p=>{p.userData.locked=val})}
