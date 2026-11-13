@@ -9,7 +9,8 @@
 <body>
 <aside class="left">
   <h1>STL Assembler</h1>
-  <div id="drop"><label class="btn">Chọn file STL / 3MF / STEP<input id="file" type="file" accept=".stl,.3mf,.step,.stp" multiple hidden></label><p class="muted" style="margin:8px 0 0">hoặc kéo thả nhiều file vào đây</p></div>
+  <div id="drop"><label class="btn">Chọn file STL / 3MF / STEP<input id="file" type="file" accept=".stl,.3mf,.step,.stp,.stlproj" multiple hidden></label><p class="muted" style="margin:8px 0 0">hoặc kéo thả nhiều file vào đây</p></div>
+  <div class="row"><button id="saveProj" title="Ctrl+S">Lưu project</button><label class="btn">Mở project<input id="openProj" type="file" accept=".stlproj" hidden></label></div>
   <h2>Các phần</h2>
   <div class="row"><button id="grp" title="Ctrl+G">Gộp nhóm</button><button id="ungrp" title="Ctrl+Shift+G">Tách nhóm</button></div>
   <ul id="list"></ul>
@@ -79,6 +80,7 @@
 <script src="js/lock.js"></script>
 <script src="js/groups.js"></script>
 <script src="js/list.js"></script>
+<script src="js/delete.js"></script>
 <script src="js/movement.js"></script>
 <script src="js/history.js"></script>
 <script src="js/inputs.js"></script>
@@ -91,6 +93,7 @@
 <script src="js/export.js"></script>
 <script src="js/materials.js"></script>
 <script src="js/snap.js"></script>
+<script src="js/project.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
