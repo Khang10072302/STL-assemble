@@ -3,7 +3,7 @@
 // ---- Căn chỉnh (Align) kiểu Tinkercad: chọn nhiều phần, bấm chấm trên hộp bao để căn theo Min / Giữa / Max của từng trục ----
 let alignOn=false;
 const alignGroup=new THREE.Group(); alignGroup.visible=false; scene.add(alignGroup);
-const alignBox=new THREE.Box3Helper(new THREE.Box3(),0x2f7df6); alignBox.material.depthTest=false; alignBox.renderOrder=9; alignGroup.add(alignBox);
+const alignBox=new THREE.Box3Helper(new THREE.Box3(),0x5eead4); alignBox.material.depthTest=false; alignBox.renderOrder=9; alignGroup.add(alignBox);
 const MODES=['min','mid','max'], AXCOL=[0xe5484d,0x30a46c,0x3e63dd];
 const handles=[]; AXCOL.forEach((c,ax)=>MODES.forEach(m=>{
   const h=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),new THREE.MeshBasicMaterial({color:c,depthTest:false}));
@@ -21,9 +21,10 @@ function worldBox(m){ // hộp bao thật sự của phần (tính trên từng 
 const pick=(b,mode,ax)=>mode==='min'?b.min.getComponent(ax):mode==='max'?b.max.getComponent(ax):(b.min.getComponent(ax)+b.max.getComponent(ax))/2;
 function refreshAlign(){
   const ms=[...selSet], ok=units().length>1&&!exploded, on=alignOn&&ok;
-  $('alignPanel').hidden=!alignOn; $('alignBtn').classList.toggle('on',alignOn);
-  $('alignInfo').textContent=ms.length>1?ms.length+' phần đang chọn.'+(ms.some(isLocked)?' Phần bị khóa là mốc, các phần còn lại căn theo nó.':' Bấm một chấm trên hộp bao, hoặc dùng các nút bên dưới.'):'Giữ Shift hoặc Ctrl rồi bấm để chọn nhiều phần, hoặc bấm Chọn tất cả.';
-  document.querySelectorAll('[data-al]').forEach(b=>b.disabled=!ok);
+  $('alignBtn').classList.toggle('on',alignOn); $('alignBtn').textContent=alignOn?'Tắt căn chỉnh':'Bật căn chỉnh';
+  $('alignInfo').textContent=ms.length+' chi tiết đang chọn';
+  $('alignHint').textContent=!ok?'Chọn ít nhất 2 chi tiết để căn chỉnh.':ms.some(isLocked)?'Chi tiết bị khóa là mốc, các chi tiết còn lại căn theo nó.':'Bấm vào chấm trên hộp bao hoặc chọn vị trí căn ở trên.';
+  document.querySelectorAll('[data-al],[data-axis]').forEach(b=>b.disabled=!ok);
   alignGroup.visible=on; if(!on)return;
   const us=units(), lku=us.filter(u=>u.some(isLocked)), U=new THREE.Box3(); (lku.length?lku:us).forEach(u=>u.forEach(m=>U.union(worldBox(m)))); alignBox.box.copy(U);
   const off=U.getSize(new THREE.Vector3()).length()*.06;
@@ -47,13 +48,11 @@ function alignHit(){ // bấm vào chấm trên khung nhìn
   const h=ray.intersectObjects(handles)[0]; if(!h)return false;
   alignAxis(h.object.userData.ax,h.object.userData.mode); return true;
 }
-[['X',['Trái','Giữa','Phải'],'#e5484d'],['Y',['Trước','Giữa','Sau'],'#30a46c'],['Z',['Dưới','Giữa','Trên'],'#3e63dd']].forEach(([a,labs,c],ax)=>{
-  const row=document.createElement('div'); row.className='alrow';
-  const t=document.createElement('b'); t.textContent=a; t.style.color=c; row.append(t);
-  MODES.forEach((m,i)=>{const b=document.createElement('button');b.textContent=labs[i];b.dataset.al=1;b.onclick=()=>alignAxis(ax,m);row.append(b)});
-  $('alignBtns').append(row);
-});
+let alignAxisSel=0; // trục đang chọn (0=X, 1=Y, 2=Z); bấm Đầu/Giữa/Cuối là căn ngay theo trục này
+document.querySelectorAll('[data-axis]').forEach(b=>b.onclick=()=>{alignAxisSel=+b.dataset.axis;document.querySelectorAll('[data-axis]').forEach(x=>x.classList.toggle('on',x===b))});
+document.querySelectorAll('[data-al]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-al]').forEach(x=>x.classList.toggle('on',x===b));alignAxis(alignAxisSel,b.dataset.al)});
 $('alignBtn').onclick=()=>{alignOn=!alignOn;refreshAlign()};
-$('selAll').onclick=()=>{const v=parts.filter(p=>p.visible);if(!v.length)return;select(v[0]);v.slice(1).forEach(p=>select(p,true))};
+function selectAllParts(){const v=parts.filter(p=>p.visible);if(!v.length)return;select(v[0]);v.slice(1).forEach(p=>select(p,true))}
+$('selAll').onclick=selectAllParts;
 const prevDraw=window.vcDraw;
 window.vcDraw=()=>{prevDraw();if(alignGroup.visible)handles.forEach(h=>h.scale.setScalar(pxScale(h.position)))};

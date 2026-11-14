@@ -10,16 +10,16 @@ const FACES=[['TOP',[0,0,1],[0,1,0]],['BOTTOM',[0,0,-1],[0,1,0]],['FRONT',[0,-1,
   const f={t,n:N,u:U,r:U.clone().cross(N),cv,tex,mesh};
   mesh.matrixAutoUpdate=false; mesh.matrix.makeBasis(f.r,U,N).setPosition(N.clone().multiplyScalar(.5)); vs.add(mesh); return f;
 });
-vs.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),new THREE.LineBasicMaterial({color:0x22262b})));
+vs.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),new THREE.LineBasicMaterial({color:0x0b1626})));
 function drawFace(f,D){
   const g=f.cv.getContext('2d'), W=256, z=W*ZONE;
-  g.fillStyle='#3b4047'; g.fillRect(0,0,W,W); g.fillStyle='#596069'; g.fillRect(z,z,W-2*z,W-2*z);
+  g.fillStyle='#12233a'; g.fillRect(0,0,W,W); g.fillStyle='#1c3552'; g.fillRect(z,z,W-2*z,W-2*z);
   if(D&&D.dot(f.n)>.5){ // tô sáng vùng đang trỏ vào (mặt, cạnh hoặc góc)
     const ra=Math.round(D.dot(f.r)), rb=Math.round(D.dot(f.u));
-    g.fillStyle='#4aa3ff'; g.fillRect(ra<0?0:ra>0?W-z:z, rb>0?0:rb<0?W-z:z, ra===0?W-2*z:z, rb===0?W-2*z:z);
+    g.fillStyle='#2dd4bf'; g.fillRect(ra<0?0:ra>0?W-z:z, rb>0?0:rb<0?W-z:z, ra===0?W-2*z:z, rb===0?W-2*z:z);
   }
-  g.strokeStyle='#22262b'; g.lineWidth=3; g.strokeRect(z,z,W-2*z,W-2*z); g.strokeRect(1.5,1.5,W-3,W-3);
-  g.fillStyle='#e6e9ee'; g.font='bold 34px system-ui,sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(f.t,W/2,W/2+2);
+  g.strokeStyle='#0a1626'; g.lineWidth=3; g.strokeRect(z,z,W-2*z,W-2*z); g.strokeRect(1.5,1.5,W-3,W-3);
+  g.fillStyle='#d7e6f0'; g.font='bold 34px system-ui,sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(f.t,W/2,W/2+2);
   f.tex.needsUpdate=true;
 }
 FACES.forEach(f=>drawFace(f,null));

@@ -12,7 +12,7 @@ function lockSvg(on){
   return '<svg viewBox="0 0 24 24" width="16" height="16"><rect x="5" y="11" width="14" height="10" rx="2" fill="'+c+'"/><path d="'+arc+'" fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round"/></svg>';
 }
 function lockBtn(getLocked,onToggle,disabled){
-  const b=document.createElement('button'); b.className='lk'; b.innerHTML=lockSvg(getLocked());
+  const b=document.createElement('button'); b.className='lk '+(getLocked()?'locked':'unlocked'); b.innerHTML=lockSvg(getLocked());
   b.title=disabled?'Nhóm đang khóa':getLocked()?'Đang khóa, bấm để mở':'Bấm để khóa'; b.setAttribute('aria-label',b.title);
   b.onclick=()=>{if(disabled)return;onToggle();syncGizmo();renderList();fillFields();refreshAlign();push()}; return b;
 }

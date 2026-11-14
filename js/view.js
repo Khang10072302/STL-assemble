@@ -15,9 +15,13 @@ function setProjection(toOrtho){
   if(toOrtho){orthoH=d*k;ortho.zoom=1;ortho.position.copy(old.position)}
   else persp.position.copy(orbit.target).addScaledVector(dir.normalize(),orthoH/ortho.zoom/k); // giữ nguyên độ lớn hiển thị khi đổi
   nw.near=old.near; nw.far=old.far; camera=nw; orbit.object=nw; tc.camera=nw; updOrtho(); nw.updateProjectionMatrix();
-  $('proj').classList.toggle('on',toOrtho);
+  updProjUI(toOrtho);
 }
-$('proj').onclick=()=>setProjection(!camera.isOrthographicCamera);
+function updProjUI(toOrtho){
+  $('projLabel').textContent=toOrtho?'Trực giao':'Phối cảnh';
+  document.querySelectorAll('[data-proj]').forEach(b=>b.classList.toggle('on',(b.dataset.proj==='ortho')===toOrtho));
+}
+document.querySelectorAll('[data-proj]').forEach(b=>b.onclick=()=>{setProjection(b.dataset.proj==='ortho');hidePop()});
 
 
 // ---- Ẩn/hiện lưới nền và tốc độ zoom ----

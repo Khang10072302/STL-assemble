@@ -3,7 +3,7 @@
 THREE.Object3D.DEFAULT_UP.set(0,0,1); // STL/CAD dùng trục Z hướng lên
 const $=id=>document.getElementById(id);
 const view=$('view'), hint=$('hint');
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0xe6e9ee);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x08131f);
 const persp=new THREE.PerspectiveCamera(45,1,0.1,1e6), ortho=new THREE.OrthographicCamera(-1,1,1,-1,0.1,1e6); let camera=ortho, orthoH=220;
 camera.position.set(300,-300,300); // mặc định: nhìn trực giao theo hướng isometric
 const pxScale=p=>camera.isOrthographicCamera?orthoH/camera.zoom*.03:camera.position.distanceTo(p)*.012; // kích thước chấm/đánh dấu theo màn hình
@@ -11,7 +11,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); renderer.se
 scene.add(new THREE.HemisphereLight(0xffffff,0x8a8f99,.5));
 scene.environment=new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(),0.04).texture; // để chất liệu bóng/kim loại có phản chiếu
 const sun=new THREE.DirectionalLight(0xffffff,1.6); sun.position.set(200,-300,500); scene.add(sun);
-const grid=new THREE.GridHelper(600,60,0x8a93a0,0xc3c9d2); grid.rotation.x=Math.PI/2; scene.add(grid);
+const grid=new THREE.GridHelper(600,60,0x2a7d86,0x15374a); grid.rotation.x=Math.PI/2; scene.add(grid);
 
 const orbit=new OrbitControls(camera,renderer.domElement); orbit.enableDamping=true;
 const tc=new TransformControls(camera,renderer.domElement); scene.add(tc);

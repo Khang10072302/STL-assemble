@@ -1,7 +1,7 @@
 'use strict';
 // Ghép theo điểm / mặt / cạnh, mối ghép (joint) và danh sách mối ghép
 function renderJoints(){
-  const ul=$('joints'); ul.innerHTML=''; $('noJoint').hidden=joints.length>0;
+  const ul=$('joints'); ul.innerHTML=''; $('noJoint').hidden=joints.length>0; $('jointCount').textContent=joints.length;
   const T={point:'điểm',face:'mặt',edge:'cạnh'};
   joints.forEach(j=>{
     const li=document.createElement('li'),c=document.createElement('input'),s=document.createElement('span'),x=document.createElement('button');
@@ -26,6 +26,9 @@ function snapReset(){A=null;marker.visible=false;edgeLine.visible=false;setHint(
 function setHint(){
   hint.textContent=!parts.length?'Thêm file STL để bắt đầu.':!snapMode?'Bấm vào một phần để chọn. Kéo chuột để xoay camera, cuộn để phóng to.'
    :!A?'Ghép '+H[snapMode]+' – bước 1: bấm một '+H[snapMode]+' trên phần đang chọn.':'Ghép '+H[snapMode]+' – bước 2: bấm '+H[snapMode]+' trên phần khác. Esc để hủy.';
+  const st=!snapMode?0:!A?1:2, w=snapMode?H[snapMode]:'điểm'; // các bước hướng dẫn trong tab Ghép
+  $('snapStep1').textContent='1. Chọn '+w+' trên chi tiết thứ nhất'; $('snapStep2').textContent='2. Chọn '+w+' tương ứng để ghép';
+  document.querySelectorAll('[data-step]').forEach(p=>p.classList.toggle('on',+p.dataset.step===st));
 }
 const key=v=>Math.round(v.x*1e3)+','+Math.round(v.y*1e3)+','+Math.round(v.z*1e3);
 const vert=(pos,i)=>new THREE.Vector3().fromBufferAttribute(pos,i);

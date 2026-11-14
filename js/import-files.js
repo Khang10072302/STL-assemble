@@ -12,7 +12,7 @@ async function loadFiles(files){
       else if(/\.stlproj$/i.test(f.name)){await openProject(await f.arrayBuffer());continue}
       else continue;
     }catch(e){console.error(e);setHint();alert('Không đọc được '+f.name+': '+(e.message||e));continue}
-    if(ms.length){place(ms);select(ms[0]);any=true}
+    if(ms.length){ms.forEach(m=>m.userData.file=f.name);place(ms);select(ms[0]);any=true}
   }
   if(any){frame();push()}
 }

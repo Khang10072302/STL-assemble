@@ -9,4 +9,4 @@ function exportPNG(){
   renderer.domElement.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='stl-assembly.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)});
   hide.forEach((o,i)=>o.visible=vs[i]); grid.visible=gv; scene.background=bg; resize();
 }
-$('exp').onclick=exportPNG;
+$('exp').onclick=()=>{exportPNG();hidePop()};

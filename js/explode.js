@@ -22,8 +22,16 @@ function setExplode(f){
   if(f>0&&!was){parts.forEach(m=>m.userData.base=m.position.clone());computeOffsets()}
   if(f<=0&&was)parts.forEach(m=>{if(m.userData.base){m.position.copy(m.userData.base);delete m.userData.base}});
   exploded=f>0; if(exploded)applyEx(f);
-  $('explode').value=exploded?f:0; syncGizmo();
+  $('explode').value=exploded?f:0; uiExPct(); syncGizmo();
   fillFields(); updUndo();
 }
+let exAxis='z';
+function uiExPct(){$('exPct').textContent=Math.round(+$('explode').value*100)+'%'}
+function setExMode(m){ // m: 'radial' hoặc 'x' | 'y' | 'z'
+  exMode=m; $('exMode').value=m==='radial'?'radial':'axis';
+  document.querySelectorAll('[data-exaxis]').forEach(b=>b.classList.toggle('on',m!=='radial'&&b.dataset.exaxis===m));
+  if(exploded){computeOffsets();applyEx(+$('explode').value)}
+}
 $('explode').oninput=e=>setExplode(+e.target.value);
-$('exMode').onchange=e=>{exMode=e.target.value;if(exploded){computeOffsets();applyEx(+$('explode').value)}};
+$('exMode').onchange=e=>setExMode(e.target.value==='radial'?'radial':exAxis);
+document.querySelectorAll('[data-exaxis]').forEach(b=>b.onclick=()=>{exAxis=b.dataset.exaxis;setExMode(exAxis)});

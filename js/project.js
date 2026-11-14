@@ -6,7 +6,7 @@ function saveProject(){
   const idx=new Map(parts.map((m,i)=>[m,i])), files={};
   const P=parts.map((m,i)=>{
     const a=m.geometry.attributes.position.array; files['geo/'+i+'.bin']=new Uint8Array(a.buffer,a.byteOffset,a.byteLength);
-    return {name:m.userData.name,pos:(m.userData.base||m.position).toArray(),quat:m.quaternion.toArray(),scale:m.scale.toArray(),color:m.material.color.getHex(),
+    return {name:m.userData.name,file:m.userData.file,pos:(m.userData.base||m.position).toArray(),quat:m.quaternion.toArray(),scale:m.scale.toArray(),color:m.material.color.getHex(),
       mat:m.userData.mat||'pla',visible:m.visible,locked:!!m.userData.locked,stick:m.userData.stick!==false};
   });
   const meta={format:'stlproj',version:1,parts:P,nextX,n,gid,grid:grid.visible,
@@ -31,7 +31,7 @@ async function openProject(buf){
     const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength)),3));
     g.computeVertexNormals(); g.computeBoundingBox();
     const m=new THREE.Mesh(g,new THREE.MeshPhysicalMaterial({color:r.color}));
-    m.userData.name=r.name; m.position.fromArray(r.pos); m.quaternion.fromArray(r.quat); m.scale.fromArray(r.scale);
+    m.userData.name=r.name; m.userData.file=r.file; m.position.fromArray(r.pos); m.quaternion.fromArray(r.quat); m.scale.fromArray(r.scale);
     m.visible=r.visible; m.userData.locked=r.locked; m.userData.stick=r.stick; setMat(m,r.mat); return m;
   });
   if(exploded)setExplode(0);
