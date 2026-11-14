@@ -24,7 +24,7 @@ document.querySelectorAll('[data-snap]').forEach(b=>b.onclick=()=>{
 });
 function snapReset(){A=null;marker.visible=false;edgeLine.visible=false;setHint()}
 function setHint(){
-  hint.textContent=!parts.length?'Thêm file STL để bắt đầu.':!snapMode?'Bấm vào một phần để chọn. Kéo chuột để xoay camera, cuộn để phóng to.'
+  hint.textContent=!parts.length?'Thêm file STL để bắt đầu.':!snapMode?(editGroup?'Đang chọn từng chi tiết trong '+editGroup.name+'. Bấm ra ngoài nhóm hoặc nhấn Esc để thoát.':'Bấm vào một chi tiết để chọn (nhấn đúp để chọn riêng trong nhóm). Kéo chuột để xoay camera, cuộn để phóng to.')
    :!A?'Ghép '+H[snapMode]+' – bước 1: bấm một '+H[snapMode]+' trên phần đang chọn.':'Ghép '+H[snapMode]+' – bước 2: bấm '+H[snapMode]+' trên phần khác. Esc để hủy.';
   const st=!snapMode?0:!A?1:2, w=snapMode?H[snapMode]:'điểm'; // các bước hướng dẫn trong tab Ghép
   $('snapStep1').textContent='1. Chọn '+w+' trên chi tiết thứ nhất'; $('snapStep2').textContent='2. Chọn '+w+' tương ứng để ghép';
@@ -89,11 +89,22 @@ cv.addEventListener('pointerup',e=>{
   const r=cv.getBoundingClientRect(); mouse.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); ray.setFromCamera(mouse,camera);
   if(alignHit())return;
   const vis=parts.filter(m=>m.visible), more=e.shiftKey||e.ctrlKey||e.metaKey;
-  if(!snapMode||exploded){const h=ray.intersectObjects(vis)[0];if(!h&&more)return;select(h?h.object:null,more,e.altKey);return}
+  if(!snapMode||exploded){
+    const h=ray.intersectObjects(vis,false)[0], g=h&&h.object.userData.group;
+    if(!h&&more)return;
+    if(editGroup&&!more&&(!h||g!==editGroup))editGroup=null; // bấm ra ngoài nhóm thì thoát chế độ chọn từng chi tiết
+    select(h?h.object:null,more,e.altKey||(!!editGroup&&g===editGroup));return}
   if(!sel)return;
   if(selLocked()){hint.textContent='Phần đang chọn đang khóa, mở khóa để ghép.';return}
-  const h=ray.intersectObjects(A?vis.filter(m=>m!==sel):[sel])[0]; if(!h)return;
+  const h=ray.intersectObjects(A?vis.filter(m=>m!==sel):[sel],false)[0]; if(!h)return;
   const f=feature(h,snapMode);
   if(!A){A=f;showA(f);setHint();return}
   applySnap(A,f);
 });
+cv.addEventListener('dblclick',e=>{ // nhấn đúp vào chi tiết thuộc nhóm: chuyển sang chọn từng chi tiết trong nhóm đó
+  if(snapMode||exploded)return;
+  const r=cv.getBoundingClientRect(); mouse.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); ray.setFromCamera(mouse,camera);
+  const h=ray.intersectObjects(parts.filter(m=>m.visible),false)[0], g=h&&h.object.userData.group; if(!g)return;
+  editGroup=g; select(h.object,false,true);
+});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&editGroup){editGroup=null;finishSel()}});

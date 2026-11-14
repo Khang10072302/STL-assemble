@@ -52,7 +52,7 @@ function partTag(m){return 'PART / '+String(parts.indexOf(m)+1).padStart(2,'0')}
 function uiSync(){
   const g=sel&&sel.userData.group, whole=!!g&&g.members.every(m=>selSet.has(m)), many=selSet.size>1;
   $('partCount').textContent=parts.length;
-  $('vlabel').textContent=(whole?g.name:many?selSet.size+' chi tiết đã chọn':sel?sel.userData.name:'Chưa chọn chi tiết')+' / '+parts.length+' chi tiết';
+  $('vlabel').textContent=(editGroup?editGroup.name+' › ':'')+(whole?g.name:many?selSet.size+' chi tiết đã chọn':sel?sel.userData.name:'Chưa chọn chi tiết')+' / '+parts.length+' chi tiết';
   $('selSw').style.background=sel?'#'+sel.material.color.getHexString():'#10243b';
   $('selName').textContent=sel?(whole?g.name:many?selSet.size+' chi tiết':sel.userData.name):'Chưa chọn chi tiết';
   $('selSub').textContent=sel?(many?'Áp dụng cho tất cả chi tiết đang chọn':partTag(sel)+(sel.userData.file?' · '+sel.userData.file:'')):'Bấm vào một chi tiết để chỉnh';

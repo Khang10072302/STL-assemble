@@ -19,7 +19,7 @@ window.addEventListener('pointerup',e=>{
 function shiftClick(e){
   if(snapMode&&!exploded)return;
   const r=renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); ray.setFromCamera(mouse,camera);
-  const h=ray.intersectObjects(parts.filter(p=>p.visible))[0]; if(h)select(h.object,true,e.altKey);
+  const h=ray.intersectObjects(parts.filter(p=>p.visible),false)[0]; if(h)select(h.object,true,e.altKey||(!!editGroup&&h.object.userData.group===editGroup));
 }
 function boxSelect(m){ // kéo trái sang phải: chọn phần nằm trọn trong vùng; kéo phải sang trái: chọn cả phần chạm vùng
   const w=view.clientWidth, h=view.clientHeight, x0=Math.min(m.x,m.x2), x1=Math.max(m.x,m.x2), y0=Math.min(m.y,m.y2), y1=Math.max(m.y,m.y2), inside=m.x2>=m.x, v=new THREE.Vector3(), hits=[];

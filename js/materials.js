@@ -19,11 +19,17 @@ Object.entries(MATS).forEach(([k,p])=>{const o=document.createElement('option');
 $('matSel').onchange=e=>{if(selSet.size){selSet.forEach(p=>setMat(p,e.target.value));push()}markMat()};
 
 // ---- Bảng màu: thêm (+), sửa, xóa; lưu trong trình duyệt (localStorage) ----
-const PAL_KEY='stl-assembler.palette';
-const PAL_DEFAULT=['#f5f5f5','#222222','#8a8f98','#d62828','#f77f00','#fcbf49','#2a9d4f','#2a6fdb','#7b4fd1','#f28ab2','#8b5a2b','#e8c9a0'];
+const PAL_KEY='stl-assembler.palette.v2', PAL_OLD_KEY='stl-assembler.palette'; // v2: bảng màu mặc định mới (lấy từ ảnh hộp filament)
+// Màu ước lượng từ ảnh chụp các hộp filament (đã hiệu chỉnh theo độ sáng của ảnh). Sửa ở menu màu nếu cần.
+const FILAMENTS=[['#cdb764','Matte PLA – Mustard Yellow'],['#6b252e','Matte PLA – Brick Red'],['#233221','Matte PLA – Army Green'],['#0e6dbf','Matte PLA – Powder Blue'],
+  ['#6d553f','Matte PLA – Walnut Brown'],['#836c3a','Silk PLA – Gold'],['#a3a1a0','PETG – Clear'],['#1d243e','PLA – Blue'],['#4d4952','PLA – Grey']];
+const PAL_DEFAULT=FILAMENTS.map(f=>f[0]), PAL_NAMES=Object.fromEntries(FILAMENTS);
+const PAL_OLD_DEFAULT=['#f5f5f5','#222222','#8a8f98','#d62828','#f77f00','#fcbf49','#2a9d4f','#2a6fdb','#7b4fd1','#f28ab2','#8b5a2b','#e8c9a0'];
 function loadPalette(){
-  try{const a=JSON.parse(localStorage.getItem(PAL_KEY)); if(Array.isArray(a))return a.filter(c=>/^#[0-9a-f]{6}$/i.test(c)).map(c=>c.toLowerCase())}catch(e){}
-  return PAL_DEFAULT.slice();
+  const read=k=>{try{const a=JSON.parse(localStorage.getItem(k)); return Array.isArray(a)?a.filter(c=>/^#[0-9a-f]{6}$/i.test(c)).map(c=>c.toLowerCase()):null}catch(e){return null}};
+  const v2=read(PAL_KEY); if(v2)return v2;
+  const old=read(PAL_OLD_KEY); // bảng màu cũ: giữ lại các màu bạn tự thêm
+  return old?PAL_DEFAULT.concat(old.filter(c=>!PAL_OLD_DEFAULT.includes(c)&&!PAL_DEFAULT.includes(c))):PAL_DEFAULT.slice();
 }
 let PALETTE=loadPalette(), swEls=[], colorMenu=null;
 function savePalette(){try{localStorage.setItem(PAL_KEY,JSON.stringify(PALETTE))}catch(e){}}
@@ -70,7 +76,7 @@ function renderSwatches(){
   const box=$('swatches'); box.innerHTML=''; swEls=[];
   PALETTE.forEach((c,i)=>{
     const b=document.createElement('button'); b.className='sw'; b.style.background=c; b.innerHTML=icon('check',18); b.setAttribute('aria-label','Màu '+c);
-    b.title='Bấm để tô màu cho phần đang chọn. Bấm lần nữa (hoặc khi chưa chọn phần nào) để sửa hoặc xóa màu.';
+    b.title=(PAL_NAMES[c]?PAL_NAMES[c]+'. ':'')+'Bấm để tô màu cho chi tiết đang chọn. Bấm lần nữa (hoặc khi chưa chọn gì) để sửa hoặc xóa màu.';
     b.onclick=()=>swatchClick(i,b); box.append(b); swEls.push(b);
   });
   const add=document.createElement('button'); add.className='sw add'; add.innerHTML=icon('plus',18); add.title='Thêm màu mới'; add.setAttribute('aria-label','Thêm màu mới');
