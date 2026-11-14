@@ -7,69 +7,140 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<aside class="left">
-  <h1>STL Assembler</h1>
-  <div id="drop"><label class="btn">Chọn file STL / 3MF / STEP<input id="file" type="file" accept=".stl,.3mf,.step,.stp,.stlproj" multiple hidden></label><p class="muted" style="margin:8px 0 0">hoặc kéo thả nhiều file vào đây</p></div>
-  <div class="row"><button id="saveProj" title="Ctrl+S">Lưu project</button><label class="btn">Mở project<input id="openProj" type="file" accept=".stlproj" hidden></label></div>
-  <h2>Các phần</h2>
-  <div class="row"><button id="grp" title="Ctrl+G">Gộp nhóm</button><button id="ungrp" title="Ctrl+Shift+G">Tách nhóm</button></div>
-  <ul id="list"></ul>
-  <p id="empty" class="muted">Chưa có phần nào.</p>
-  <p class="muted">Shift + bấm: chọn thêm. Shift + kéo chuột: chọn vùng (kéo từ trái sang phải: chỉ lấy phần nằm trọn trong vùng; kéo ngược lại: lấy cả phần chạm vùng). Alt + bấm: chọn riêng một phần trong nhóm.</p>
-  <button id="frame">Căn khung nhìn</button>
-  <button id="proj" class="on" title="Bật/tắt chế độ nhìn trực giao">Trực giao (isometric)</button>
-  <label class="chk"><input id="showGrid" type="checkbox" checked> Hiện lưới nền</label>
-  <label class="muted">Tốc độ zoom<input id="zoomSpd" type="range" min="1" max="12" step=".5" value="4"></label>
-  <h2>Xuất ảnh</h2>
-  <div class="row"><select id="expScale" aria-label="Độ phân giải"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option></select><button id="exp">Tải ảnh PNG</button></div>
-  <label class="chk"><input id="expAlpha" type="checkbox"> Nền trong suốt</label>
-  <label class="chk"><input id="expGrid" type="checkbox" checked> Ẩn lưới khi xuất</label>
-</aside>
-
-<div id="view"><div id="hint">Thêm file STL để bắt đầu.</div><div id="marquee"></div>
-  <div id="vcube">
-    <button class="va up" data-arrow="up" title="Xoay lên 15°">&#9650;</button><button class="va down" data-arrow="down" title="Xoay xuống 15°">&#9660;</button>
-    <button class="va left" data-arrow="left" title="Xoay trái 15°">&#9664;</button><button class="va right" data-arrow="right" title="Xoay phải 15°">&#9654;</button>
-    <div id="vc"></div>
-    <button id="vIso" class="vdot" title="Góc đẳng cự (isometric)" aria-label="Góc đẳng cự"></button>
-    <button id="vFit" class="vfit" title="Căn khung nhìn" aria-label="Căn khung nhìn"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 2l9 5v10l-9 5-9-5V7z" fill="#4b5058" stroke="#1c1f24" stroke-width="1.2"/><path d="M12 12l9-5M12 12v10M12 12L3 7" stroke="#1c1f24" fill="none" stroke-width="1.2"/></svg></button>
-  </div></div>
-
-<aside class="right">
-  <div class="row"><button id="undo" title="Ctrl+Z">Hoàn tác</button><button id="redo" title="Ctrl+Y">Làm lại</button></div>
-  <h2>Cách di chuyển</h2>
-  <div class="row">
-    <button data-mode="translate" class="on">Dời (W)</button>
-    <button data-mode="rotate">Xoay (E)</button>
-    <button data-mode="scale">Co giãn (R)</button>
+<header class="topbar">
+  <div class="brand"><i data-ic="cube" data-size="30"></i><b>STL</b><span>ASSEMBLER</span><i class="sep"></i></div>
+  <div class="actions">
+    <label class="btn ghost" title="Mở file .stlproj"><i data-ic="folder"></i>Mở dự án<input id="openProj" type="file" accept=".stlproj" hidden></label>
+    <button id="saveProj" class="ghost" title="Ctrl+S"><i data-ic="save"></i>Lưu</button>
+    <div class="pop-wrap">
+      <button id="expBtn" class="primary"><i data-ic="download"></i>Xuất ảnh</button>
+      <div id="expPop" class="menu pop form" hidden>
+        <label class="field">Độ phân giải<select id="expScale" aria-label="Độ phân giải"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option></select></label>
+        <label class="tgl">Nền trong suốt<span class="switch"><input id="expAlpha" type="checkbox"><span></span></span></label>
+        <label class="tgl">Ẩn lưới khi xuất<span class="switch"><input id="expGrid" type="checkbox" checked><span></span></span></label>
+        <button id="exp" class="primary wide"><i data-ic="download"></i>Tải ảnh PNG</button>
+      </div>
+    </div>
   </div>
-  <label class="chk"><input id="snapGrid" type="checkbox"> Bám lưới (5 đơn vị, 15°)</label>
-  <label class="chk"><input id="stick" type="checkbox" checked> Dính mặt phẳng (đáy luôn chạm lưới)</label>
-  <div class="row"><button id="stickAll">Bật tất cả</button><button id="stickNone">Tắt tất cả</button></div>
-  <h2>Ghép</h2>
-  <div class="row"><button data-snap="point">Điểm</button><button data-snap="face">Mặt</button><button data-snap="edge">Cạnh</button></div>
-  <label class="chk"><input id="alignFace" type="checkbox" checked> Ghép điểm: xoay hai mặt úp vào nhau</label>
-  <h2>Mối ghép (tích = dính, di chuyển cùng nhau)</h2>
-  <ul id="joints"></ul><p id="noJoint" class="muted">Chưa có mối ghép.</p>
-  <h2>Chất liệu và màu (phần đang chọn)</h2>
-  <div class="row" id="mats"></div>
-  <div class="row" id="swatches"></div>
-  <h2>Căn chỉnh (Align)</h2>
-  <div class="row"><button id="alignBtn" title="Phím L">Bật căn chỉnh</button><button id="selAll">Chọn tất cả</button></div>
-  <div id="alignPanel" hidden><p class="muted" id="alignInfo"></p><div id="alignBtns"></div></div>
-  <h2>Tách rời (exploded view)</h2>
-  <select id="exMode" aria-label="Hướng tách"><option value="radial">Tỏa ra từ tâm</option><option value="z">Dọc trục Z</option><option value="x">Dọc trục X</option><option value="y">Dọc trục Y</option></select>
-  <input id="explode" type="range" min="0" max="1" step="0.01" value="0" aria-label="Mức tách rời">
-  <p class="muted">Khi đang tách, việc chỉnh sửa tạm bị khóa. Kéo về 0 để ghép lại và sửa tiếp.</p>
-  <h2>Nhập số chính xác</h2>
-  <div class="grid3" id="posGrid"><label>X<input type="number" step="any" id="px"></label><label>Y<input type="number" step="any" id="py"></label><label>Z<input type="number" step="any" id="pz"></label></div>
-  <div class="grid3"><label>Xoay X°<input type="number" step="any" id="rx"></label><label>Xoay Y°<input type="number" step="any" id="ry"></label><label>Xoay Z°<input type="number" step="any" id="rz"></label></div>
-  <label class="muted">Tỉ lệ<input type="number" step="any" min="0.001" id="sc"></label>
-  <p class="muted">Chọn một phần trong danh sách hoặc bấm vào nó trên màn hình. Phím Delete để xóa phần đang chọn.</p>
-</aside>
+</header>
+
+<main class="app">
+  <aside class="panel left">
+    <div class="panel-head"><h2>Chi tiết</h2><span class="badge" id="partCount">0</span><button id="partsMore" class="icon-btn more" aria-label="Thêm tùy chọn"><i data-ic="more"></i></button></div>
+    <div id="drop" class="dropzone">
+      <label class="btn primary wide"><i data-ic="plus"></i>Thêm file<input id="file" type="file" accept=".stl,.3mf,.step,.stp,.stlproj" multiple hidden></label>
+      <p>STL, 3MF, STEP · Kéo thả để nhập</p>
+    </div>
+    <div class="row2"><button id="grp" class="soft" title="Ctrl+G"><i data-ic="layers"></i>Gộp nhóm</button><button id="ungrp" class="soft" title="Ctrl+Shift+G"><i data-ic="cube"></i>Tách nhóm</button></div>
+    <ul id="list"></ul>
+    <p id="empty" class="note">Chưa có chi tiết nào.</p>
+    <div class="foot">
+      <p>Shift + bấm để chọn nhiều chi tiết</p>
+      <p>Shift + kéo chuột: chọn vùng (trái sang phải: nằm trọn trong vùng, phải sang trái: chạm vùng)</p>
+      <p>Alt + bấm: chọn riêng một chi tiết trong nhóm</p>
+    </div>
+  </aside>
+
+  <section class="stage">
+    <div id="view"><div id="hint">Thêm file STL để bắt đầu.</div><div id="marquee"></div>
+      <div id="vcube">
+        <button class="va up" data-arrow="up" title="Xoay lên 15°">&#9650;</button><button class="va down" data-arrow="down" title="Xoay xuống 15°">&#9660;</button>
+        <button class="va left" data-arrow="left" title="Xoay trái 15°">&#9664;</button><button class="va right" data-arrow="right" title="Xoay phải 15°">&#9654;</button>
+        <div id="vc"></div>
+        <button id="vIso" class="vdot" title="Góc đẳng cự (isometric)" aria-label="Góc đẳng cự"></button>
+        <button id="vFit" class="vfit" title="Căn khung nhìn" aria-label="Căn khung nhìn"><i data-ic="cube" data-size="22"></i></button>
+      </div>
+    </div>
+    <div class="tb l">
+      <button data-mode="translate" class="tool on" title="Dời (W)"><i data-ic="move" data-size="20"></i><kbd>W</kbd></button>
+      <button data-mode="rotate" class="tool" title="Xoay (E)"><i data-ic="rotate" data-size="20"></i><kbd>E</kbd></button>
+      <button data-mode="scale" class="tool" title="Co giãn (R)"><i data-ic="scale" data-size="20"></i><kbd>R</kbd></button>
+    </div>
+    <div class="tb c">
+      <button id="undo" class="tool" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác"><i data-ic="undo" data-size="20"></i></button>
+      <button id="redo" class="tool" title="Làm lại (Ctrl+Y)" aria-label="Làm lại"><i data-ic="redo" data-size="20"></i></button>
+    </div>
+    <div class="tb r">
+      <div class="pop-wrap">
+        <button id="projBtn" class="tool wide-tool"><i data-ic="cube"></i><span id="projLabel">Trực giao</span><i data-ic="chevD" data-size="14"></i></button>
+        <div id="projMenu" class="menu pop" hidden>
+          <button data-proj="ortho" class="on">Trực giao (isometric)</button>
+          <button data-proj="persp">Phối cảnh</button>
+          <div class="sep"></div>
+          <label class="menu-row">Tốc độ zoom<input id="zoomSpd" type="range" min="1" max="12" step=".5" value="4"></label>
+        </div>
+      </div>
+      <button id="frame" class="tool" title="Căn khung nhìn" aria-label="Căn khung nhìn"><i data-ic="maximize" data-size="20"></i></button>
+    </div>
+    <div class="vlabel"><small>KHUNG NHÌN 3D</small><div id="vlabel">Chưa chọn chi tiết / 0 chi tiết</div></div>
+
+    <div class="bottombar">
+      <div class="nrows">
+        <div class="nrow"><b>Vị trí<em>mm</em></b><label class="nf ax-x"><span>X</span><input type="number" step="any" id="px"></label><label class="nf ax-y"><span>Y</span><input type="number" step="any" id="py"></label><label class="nf ax-z"><span>Z</span><input type="number" step="any" id="pz"></label></div>
+        <div class="nrow"><b>Xoay<em>deg</em></b><label class="nf ax-x"><span>X</span><input type="number" step="any" id="rx"></label><label class="nf ax-y"><span>Y</span><input type="number" step="any" id="ry"></label><label class="nf ax-z"><span>Z</span><input type="number" step="any" id="rz"></label></div>
+      </div>
+      <div class="bcol"><span class="cap">Tỉ lệ</span><label class="nf"><span>×</span><input type="number" step="any" min="0.001" id="sc"></label></div>
+      <div class="bcol toggles">
+        <label class="tgl">Lưới<span class="switch"><input id="showGrid" type="checkbox" checked><span></span></span></label>
+        <label class="tgl">Bám lưới <em>5 mm / 15°</em><span class="switch"><input id="snapGrid" type="checkbox"><span></span></span></label>
+        <label class="tgl">Dính mặt phẳng<span class="switch"><input id="stick" type="checkbox" checked><span></span></span></label>
+        <div class="mini"><button id="stickAll" title="Bật dính mặt phẳng cho tất cả">Bật hết</button><button id="stickNone" title="Tắt dính mặt phẳng cho tất cả">Tắt hết</button></div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel right">
+    <div class="panel-head"><h2>Thuộc tính</h2></div>
+    <div class="selcard"><span class="swatch-lg" id="selSw"></span><div><b id="selName">Chưa chọn chi tiết</b><small id="selSub">Bấm vào một chi tiết để chỉnh</small></div></div>
+    <div class="tabs" role="tablist">
+      <button data-tab="mat" class="on" role="tab">Chất liệu</button><button data-tab="join" role="tab">Ghép</button>
+      <button data-tab="align" role="tab">Căn chỉnh</button><button data-tab="explode" role="tab">Tách rời</button>
+    </div>
+
+    <section class="pane" data-pane="mat">
+      <h3>Chất liệu &amp; màu</h3><p class="sub">Chỉ áp dụng cho chi tiết đang chọn</p>
+      <h4>Vật liệu</h4><select id="matSel" aria-label="Vật liệu"></select>
+      <h4>Màu sắc</h4><div id="swatches"></div>
+    </section>
+
+    <section class="pane" data-pane="join" hidden>
+      <h3>Ghép</h3><p class="sub">Chọn cách ghép hai chi tiết với nhau</p>
+      <div class="seg"><button data-snap="point">Điểm</button><button data-snap="face">Mặt</button><button data-snap="edge">Cạnh</button></div>
+      <label class="check"><input id="alignFace" type="checkbox" checked><span class="box"></span>Xoay hai mặt úp vào nhau</label>
+      <div class="steps"><p data-step="1" id="snapStep1">1. Chọn điểm trên chi tiết thứ nhất</p><p data-step="2" id="snapStep2">2. Chọn điểm tương ứng để ghép</p></div>
+      <div class="sec-head"><h3>Mối ghép</h3><span id="jointCount">0</span></div>
+      <ul id="joints"></ul><p id="noJoint" class="sub">Chưa có mối ghép.</p>
+      <p class="note">Tích mối ghép để các chi tiết di chuyển cùng nhau.</p>
+    </section>
+
+    <section class="pane" data-pane="align" hidden>
+      <h3>Căn chỉnh</h3><p class="sub">Căn các chi tiết theo trục hoặc mặt phẳng</p>
+      <div class="between"><span id="alignInfo">0 chi tiết đang chọn</span><button id="selAll" class="soft">Chọn tất cả</button></div>
+      <h4>Trục căn chỉnh</h4>
+      <div class="seg"><button data-axis="0" class="on">X</button><button data-axis="1">Y</button><button data-axis="2">Z</button></div>
+      <h4>Vị trí căn</h4>
+      <div class="seg"><button data-al="min">Đầu</button><button data-al="mid" class="on">Giữa</button><button data-al="max">Cuối</button></div>
+      <button id="alignBtn" class="wide" title="Phím L">Bật căn chỉnh</button>
+      <p id="alignHint" class="note">Chọn ít nhất 2 chi tiết để căn chỉnh.</p>
+    </section>
+
+    <section class="pane" data-pane="explode" hidden>
+      <h3>Tách rời</h3><p class="sub">Tách các chi tiết để quan sát mô hình</p>
+      <h4>Kiểu tách rời</h4>
+      <select id="exMode" aria-label="Kiểu tách rời"><option value="radial">Tỏa ra từ tâm</option><option value="axis">Dọc theo trục</option></select>
+      <h4>Hoặc tách dọc trục</h4>
+      <div class="seg"><button data-exaxis="x">X</button><button data-exaxis="y">Y</button><button data-exaxis="z">Z</button></div>
+      <div class="between"><h4>Mức tách</h4><span id="exPct" class="pct">0%</span></div>
+      <input id="explode" type="range" min="0" max="1" step="0.01" value="0" aria-label="Mức tách rời">
+      <div class="scale"><span>0%</span><span>100%</span></div>
+      <p class="note">Khi tách rời, chỉnh sửa tạm bị khóa.<br>Thu về 0% để tiếp tục biến đổi và ghép.</p>
+    </section>
+  </aside>
+</main>
 
 <script src="vendor/three-bundle.js"></script>
 <script src="js/core.js"></script>
+<script src="js/ui.js"></script>
 <script src="js/view.js"></script>
 <script src="js/viewcube.js"></script>
 <script src="js/import-stl.js"></script>
