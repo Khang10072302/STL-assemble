@@ -125,15 +125,10 @@
     </section>
 
     <section class="pane" data-pane="explode" hidden>
-      <h3>Tách rời</h3><p class="sub">Tách các chi tiết để quan sát mô hình</p>
-      <h4>Kiểu tách rời</h4>
-      <select id="exMode" aria-label="Kiểu tách rời"><option value="radial">Tỏa ra từ tâm</option><option value="axis">Dọc theo trục</option></select>
-      <h4>Hoặc tách dọc trục</h4>
-      <div class="seg"><button data-exaxis="x">X</button><button data-exaxis="y">Y</button><button data-exaxis="z">Z</button></div>
-      <div class="between"><h4>Mức tách</h4><span id="exPct" class="pct">0%</span></div>
-      <input id="explode" type="range" min="0" max="1" step="0.01" value="0" aria-label="Mức tách rời">
-      <div class="scale"><span>0%</span><span>100%</span></div>
-      <p class="note">Khi tách rời, chỉnh sửa tạm bị khóa.<br>Thu về 0% để tiếp tục biến đổi và ghép.</p>
+      <h3>Tách rời</h3><p class="sub">Tách các chi tiết để quan sát mô hình. Mỗi lớp tách theo một hướng, các lớp cộng dồn với nhau (ví dụ tách trục X rồi thêm trục Y).</p>
+      <div id="exLayers"></div>
+      <button id="exAdd" class="soft wide"><i data-ic="plus"></i>Thêm lớp tách</button>
+      <p class="note">Khi tách rời, chỉnh sửa tạm bị khóa.<br>Đưa mọi lớp về 0% để tiếp tục biến đổi và ghép.</p>
     </section>
   </aside>
 </main>
