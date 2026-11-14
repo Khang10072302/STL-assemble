@@ -1,5 +1,5 @@
 'use strict';
-// Dính mặt phẳng: đáy luôn chạm lưới, bật/tắt từng phần hoặc tất cả
+// Dính mặt phẳng: đáy luôn chạm lưới, bật/tắt cho chi tiết đang chọn
 // ---- Dính mặt phẳng ----
 $('stick').onchange=e=>{
   if(!sel)return; const v=e.target.checked;
@@ -7,5 +7,3 @@ $('stick').onchange=e=>{
   else{sel.userData.stick=v;if(v){beginMove();propagate()}}
   fillFields(); push();
 };
-function setStickAll(v){if(exploded)return;parts.forEach(m=>{m.userData.stick=v;if(v&&!isLocked(m))dropToPlane(m)});fillFields();push()}
-$('stickAll').onclick=()=>setStickAll(true); $('stickNone').onclick=()=>setStickAll(false);
