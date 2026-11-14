@@ -34,15 +34,11 @@
     <div class="row2"><button id="grp" class="soft" title="Ctrl+G"><i data-ic="layers"></i>Gộp nhóm</button><button id="ungrp" class="soft" title="Ctrl+Shift+G"><i data-ic="cube"></i>Tách nhóm</button></div>
     <ul id="list"></ul>
     <p id="empty" class="note">Chưa có chi tiết nào.</p>
-    <div class="foot">
-      <p>Shift + bấm để chọn nhiều chi tiết</p>
-      <p>Shift + kéo chuột: chọn vùng (trái sang phải: nằm trọn trong vùng, phải sang trái: chạm vùng)</p>
-      <p>Alt + bấm: chọn riêng một chi tiết trong nhóm</p>
-    </div>
+    <div class="foot"><p id="hint">Thêm file STL để bắt đầu.</p></div>
   </aside>
 
   <section class="stage">
-    <div id="view"><div id="hint">Thêm file STL để bắt đầu.</div><div id="marquee"></div>
+    <div id="view"><div id="marquee"></div>
       <div id="vcube">
         <button class="va up" data-arrow="up" title="Xoay lên 15°">&#9650;</button><button class="va down" data-arrow="down" title="Xoay xuống 15°">&#9660;</button>
         <button class="va left" data-arrow="left" title="Xoay trái 15°">&#9664;</button><button class="va right" data-arrow="right" title="Xoay phải 15°">&#9654;</button>
@@ -84,7 +80,6 @@
         <label class="tgl">Lưới<span class="switch"><input id="showGrid" type="checkbox" checked><span></span></span></label>
         <label class="tgl">Bám lưới <em>5 mm / 15°</em><span class="switch"><input id="snapGrid" type="checkbox"><span></span></span></label>
         <label class="tgl">Dính mặt phẳng<span class="switch"><input id="stick" type="checkbox" checked><span></span></span></label>
-        <div class="mini"><button id="stickAll" title="Bật dính mặt phẳng cho tất cả">Bật hết</button><button id="stickNone" title="Tắt dính mặt phẳng cho tất cả">Tắt hết</button></div>
       </div>
     </div>
   </section>
